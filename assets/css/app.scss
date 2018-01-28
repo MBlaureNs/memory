@@ -2,5 +2,37 @@
 
 @import "bootstrap";
 
-.side { padding: 4ex; text-align: center; }
 h1 { text-align: center; }
+
+.main {
+  text-align: center;
+}
+
+.status {
+  font-size: 20px;
+}
+
+.board {
+  border: 2px solid black;
+  height: 400px;
+  width: 400px;
+}
+
+.tile {
+  border: 2px solid black;
+  height: 100px;
+  width: 100px;
+  font-size: 60px;
+}
+
+.tile-complete {
+  background-color: #EEEEEE;
+}
+
+.tile-active {
+  background-color: #EEEEFF;
+}
+
+.tile-hidden {
+  background-color: #EEFFEE;
+}

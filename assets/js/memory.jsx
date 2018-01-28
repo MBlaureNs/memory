@@ -89,37 +89,42 @@ class Memory extends React.Component {
   
   render() {
     return (
-      <div className="board">
-	<div className="row">
-	  <RestartBtn onClick={this.resetState.bind(this)}/>
-	  <ClickCounter clicks={this.state.clicks}/>
+      <div className="main">
+	<div className="container-fluid status">
+	  <div className="row">
+	    <RestartBtn onClick={this.resetState.bind(this)}/>
+	    <ClickCounter clicks={this.state.clicks}/>
+	  </div>
+	  <div className="row">
+	    <StatusBar hidden={this.state.hidden} lock={this.state.lock}/>
+	  </div>
 	</div>
-	<div className="row">
-	  <StatusBar hidden={this.state.hidden} lock={this.state.lock}/>
-	</div>
-	<div className="row">
-	  {this.renderTile(0,0)}
-	  {this.renderTile(0,1)}
-	  {this.renderTile(0,2)}
-	  {this.renderTile(0,3)}
-	</div>
-	<div className="row">
-	  {this.renderTile(1,0)}
-	  {this.renderTile(1,1)}
-	  {this.renderTile(1,2)}
-	  {this.renderTile(1,3)}
-	</div>
-	<div className="row">
-	  {this.renderTile(2,0)}
-	  {this.renderTile(2,1)}
-	  {this.renderTile(2,2)}
-	  {this.renderTile(2,3)}
-	</div>
-	<div className="row">
-	  {this.renderTile(3,0)}
-	  {this.renderTile(3,1)}
-	  {this.renderTile(3,2)}
-	  {this.renderTile(3,3)}
+	<div className="container-fluid board">
+
+	  <div className="row">
+	    {this.renderTile(0,0)}
+	    {this.renderTile(0,1)}
+	    {this.renderTile(0,2)}
+	    {this.renderTile(0,3)}
+	  </div>
+	  <div className="row">
+	    {this.renderTile(1,0)}
+	    {this.renderTile(1,1)}
+	    {this.renderTile(1,2)}
+	    {this.renderTile(1,3)}
+	  </div>
+	  <div className="row">
+	    {this.renderTile(2,0)}
+	    {this.renderTile(2,1)}
+	    {this.renderTile(2,2)}
+	    {this.renderTile(2,3)}
+	  </div>
+	  <div className="row">
+	    {this.renderTile(3,0)}
+	    {this.renderTile(3,1)}
+	    {this.renderTile(3,2)}
+	    {this.renderTile(3,3)}
+	  </div>
 	</div>
       </div>
     );
@@ -141,7 +146,6 @@ function ClickCounter(params) {
       </div>
     );
 }
-
 function StatusBar(params) {
   if (params.hidden == 0) {
     return (
@@ -169,20 +173,20 @@ function Tile(params) {
   var div_id = "tile-" + p.x + "-" + p.y;
   if (p.complete) {
     return (
-      <div id={div_id} className="tile col complete">
-	{p.letter}C
+      <div id={div_id} className="col-sm-3 tile tile-complete">
+	{p.letter}
       </div>
     );
   } else if (p.active) {
     return (
-      <div id={div_id} className="tile col active">
-	{p.letter}A
+      <div id={div_id} className="col-sm-3 tile tile-active">
+	{p.letter}
       </div>
     );
   } else {
     return (
-      <div id={div_id} className="tile col">
-	<Button onClick={params.onClick}>?</Button>
+      <div id={div_id} className="col-sm-3 tile tile-hidden" onClick={params.onClick}>
+	?
       </div>
     );
   }
