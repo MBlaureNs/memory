@@ -12,6 +12,8 @@ class Memory extends React.Component {
     this.state = {
       board: makeboard(this),
       clicks: 0,
+      active: [],
+      hidden: 16,
       lock: false
     };
     this.delay = 1000;
@@ -21,8 +23,9 @@ class Memory extends React.Component {
     this.setState({
       board: makeboard(this),
       clicks: 0,
-      active: 0,
-      timer: 0
+      active: [],
+      hidden: 16,
+      lock: false
     });
   }
 
@@ -32,11 +35,14 @@ class Memory extends React.Component {
     var board = this.state.board.slice();
     board[i][j].active = true;
     var clicks = this.state.clicks + 1;
-    var lock = (this.state.clicks % 2) == 1;
+    var active = this.state.active.slice();
+    active.push(board[i][j]);
+    var lock = (active.length == 2);
     
     this.setState({
       board: board,
       clicks: clicks,
+      active: active,
       lock: lock
     });
 
@@ -49,7 +55,27 @@ class Memory extends React.Component {
   }
 
   unlockBoard() {
-    this.setState({lock: false});
+    var board = this.state.board.slice();
+    var active = this.state.active.slice();
+    var hidden = this.state.hidden;
+    
+    active[0].active = false;
+    active[1].active = false;
+    
+    if (active[0].letter == active[1].letter) {
+      active[0].complete = true;
+      active[1].complete = true;
+      hidden = hidden - 2;
+    }
+    
+    this.setState(
+      {
+	board: board,
+	active: [],
+	lock: false,
+	hidden: hidden
+      }
+    );
   }
     
   renderTile(i,j) {
@@ -69,7 +95,7 @@ class Memory extends React.Component {
 	  <ClickCounter clicks={this.state.clicks}/>
 	</div>
 	<div className="row">
-	  <WaitAlert lock={this.state.lock}/>
+	  <StatusBar hidden={this.state.hidden} lock={this.state.lock}/>
 	</div>
 	<div className="row">
 	  {this.renderTile(0,0)}
@@ -116,16 +142,22 @@ function ClickCounter(params) {
     );
 }
 
-function WaitAlert(params) {
-  if (params.lock) {
+function StatusBar(params) {
+  if (params.hidden == 0) {
     return (
-      <div id="wait-lock" className="col">
+      <div id="status-bar-win" className="col">
+	WIN
+      </div>
+    );
+  } else if (params.lock) {
+    return (
+      <div id="status-bar-wait" className="col">
 	WAIT
       </div>
     );
   } else {
     return (
-      <div id="wait-unlock" className="col">
+      <div id="status-bar-click" className="col">
 	CLICK
       </div>
     );
@@ -138,13 +170,13 @@ function Tile(params) {
   if (p.complete) {
     return (
       <div id={div_id} className="tile col complete">
-	{p.letter}
+	{p.letter}C
       </div>
     );
   } else if (p.active) {
     return (
       <div id={div_id} className="tile col active">
-	{p.letter}
+	{p.letter}A
       </div>
     );
   } else {
