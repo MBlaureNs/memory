@@ -37,36 +37,42 @@ class Memory extends React.Component {
     var clicks = this.state.clicks + 1;
     var active = this.state.active.slice();
     active.push(board[i][j]);
+    var hidden = this.state.hidden;
     var lock = (active.length == 2);
     
+    if (lock) {
+      if (active[0].letter == active[1].letter) {
+	active[0].complete = true;
+	active[1].complete = true;
+	active[0].active = false;
+	active[1].active = false;
+	active = [];
+	hidden = hidden - 2;
+	lock = false;
+      } else {
+	setTimeout(
+	  this.unlockBoard.bind(this),
+	  this.delay
+	);
+      }
+    }
+
     this.setState({
       board: board,
       clicks: clicks,
       active: active,
+      hidden: hidden,
       lock: lock
     });
-
-    if (lock) {
-      setTimeout(
-	this.unlockBoard.bind(this),
-	this.delay
-      );
-    }
   }
 
   unlockBoard() {
     var board = this.state.board.slice();
     var active = this.state.active.slice();
     var hidden = this.state.hidden;
-    
+
     active[0].active = false;
     active[1].active = false;
-    
-    if (active[0].letter == active[1].letter) {
-      active[0].complete = true;
-      active[1].complete = true;
-      hidden = hidden - 2;
-    }
     
     this.setState(
       {
@@ -146,6 +152,7 @@ function ClickCounter(params) {
       </div>
     );
 }
+
 function StatusBar(params) {
   if (params.hidden == 0) {
     return (
