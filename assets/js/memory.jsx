@@ -96,7 +96,7 @@ class Memory extends React.Component {
   render() {
     return (
       <div className="main">
-	<div className="container-fluid status">
+	<div className="container status">
 	  <div className="row">
 	    <RestartBtn onClick={this.resetState.bind(this)}/>
 	    <ClickCounter clicks={this.state.clicks}/>
@@ -105,8 +105,7 @@ class Memory extends React.Component {
 	    <StatusBar hidden={this.state.hidden} lock={this.state.lock}/>
 	  </div>
 	</div>
-	<div className="container-fluid board">
-
+	<div className="container board">
 	  <div className="row">
 	    {this.renderTile(0,0)}
 	    {this.renderTile(0,1)}
@@ -180,19 +179,19 @@ function Tile(params) {
   var div_id = "tile-" + p.x + "-" + p.y;
   if (p.complete) {
     return (
-      <div id={div_id} className="col-sm-3 tile tile-complete">
+      <div id={div_id} className="col-3 tile tile-complete">
 	{p.letter}
       </div>
     );
   } else if (p.active) {
     return (
-      <div id={div_id} className="col-sm-3 tile tile-active">
+      <div id={div_id} className="col-3 tile tile-active">
 	{p.letter}
       </div>
     );
   } else {
     return (
-      <div id={div_id} className="col-sm-3 tile tile-hidden" onClick={params.onClick}>
+      <div id={div_id} className="col-3 tile tile-hidden" onClick={params.onClick}>
 	?
       </div>
     );
