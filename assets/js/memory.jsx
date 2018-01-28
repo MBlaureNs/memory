@@ -95,7 +95,7 @@ class Memory extends React.Component {
   
   render() {
     return (
-      <div className="main">
+      <div className="container main">
 	<div className="container status">
 	  <div className="row">
 	    <RestartBtn onClick={this.resetState.bind(this)}/>
@@ -179,19 +179,19 @@ function Tile(params) {
   var div_id = "tile-" + p.x + "-" + p.y;
   if (p.complete) {
     return (
-      <div id={div_id} className="col-3 tile tile-complete">
+      <div id={div_id} className="col tile tile-complete">
 	{p.letter}
       </div>
     );
   } else if (p.active) {
     return (
-      <div id={div_id} className="col-3 tile tile-active">
+      <div id={div_id} className="col tile tile-active">
 	{p.letter}
       </div>
     );
   } else {
     return (
-      <div id={div_id} className="col-3 tile tile-hidden" onClick={params.onClick}>
+      <div id={div_id} className="col tile tile-hidden" onClick={params.onClick}>
 	?
       </div>
     );
