@@ -2,94 +2,64 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from 'reactstrap';
 
-export default function run_demo(root) {
-  ReactDOM.render(<Memory/>, root);
+export default function memory_init(root, channel) {
+  ReactDOM.render(<Memory channel={channel}/>, root);
 }
 
 class Memory extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      board: makeboard(this),
+      board: this.defaultBoard(),
       clicks: 0,
       active: [],
-      hidden: 16,
-      lock: false
+      lock: false,
+      win: false
     };
-    this.delay = 1000;
+    
+    this.channel = props.channel;
+    this.channel.join()
+      .receive("ok", this.gotView.bind(this))
+      .receive("error", resp => { console.log("Unable to join", resp) });
+    this.channel.on('update', this.gotView.bind(this));
+  }
+
+  defaultBoard() {
+    var board = [];
+    for (var i=0; i<16; i++) {
+      var data = {
+	letter: "?",
+	state: "hidden",
+	x: i % 4,
+	y: i / 4
+      }
+      board.push(data);
+    }
+    return board;
   }
   
   resetState() {
-    this.setState({
-      board: makeboard(this),
-      clicks: 0,
-      active: [],
-      hidden: 16,
-      lock: false
-    });
+    this.channel.push("restart")
+	.receive("ok", this.gotView.bind(this));
+  }
+  
+  gotView(view) {
+    console.log("New view", view);
+    this.setState(view.game);
   }
 
-  handleClick(i,j) {
+  handleClick(x, y) {
     if (this.state.lock) {return;}
-    
-    var board = this.state.board.slice();
-    board[i][j].active = true;
-    var clicks = this.state.clicks + 1;
-    var active = this.state.active.slice();
-    active.push(board[i][j]);
-    var hidden = this.state.hidden;
-    var lock = (active.length == 2);
-    
-    if (lock) {
-      if (active[0].letter == active[1].letter) {
-	active[0].complete = true;
-	active[1].complete = true;
-	active[0].active = false;
-	active[1].active = false;
-	active = [];
-	hidden = hidden - 2;
-	lock = false;
-      } else {
-	setTimeout(
-	  this.unlockBoard.bind(this),
-	  this.delay
-	);
-      }
-    }
-
-    this.setState({
-      board: board,
-      clicks: clicks,
-      active: active,
-      hidden: hidden,
-      lock: lock
-    });
-  }
-
-  unlockBoard() {
-    var board = this.state.board.slice();
-    var active = this.state.active.slice();
-    var hidden = this.state.hidden;
-
-    active[0].active = false;
-    active[1].active = false;
-    
-    this.setState(
-      {
-	board: board,
-	active: [],
-	lock: false,
-	hidden: hidden
-      }
-    );
+    this.channel.push("click", {"x": x, "y": y})
+	.receive("ok", this.gotView.bind(this));
   }
     
   renderTile(i,j) {
     return (
       <Tile
-	 data = {this.state.board[i][j]}
+	 data = {this.state.board[i+j*4]}
 	 onClick = {() => this.handleClick(i,j)}
-	/>
+      />
     );
   }
   
@@ -102,32 +72,32 @@ class Memory extends React.Component {
 	    <ClickCounter clicks={this.state.clicks}/>
 	  </div>
 	  <div className="row">
-	    <StatusBar hidden={this.state.hidden} lock={this.state.lock}/>
+	    <StatusBar win={this.state.win} lock={this.state.lock}/>
 	  </div>
 	</div>
 	<div className="container board">
 	  <div className="row">
 	    {this.renderTile(0,0)}
-	    {this.renderTile(0,1)}
-	    {this.renderTile(0,2)}
-	    {this.renderTile(0,3)}
-	  </div>
-	  <div className="row">
 	    {this.renderTile(1,0)}
-	    {this.renderTile(1,1)}
-	    {this.renderTile(1,2)}
-	    {this.renderTile(1,3)}
-	  </div>
-	  <div className="row">
 	    {this.renderTile(2,0)}
-	    {this.renderTile(2,1)}
-	    {this.renderTile(2,2)}
-	    {this.renderTile(2,3)}
+	    {this.renderTile(3,0)}
 	  </div>
 	  <div className="row">
-	    {this.renderTile(3,0)}
+	    {this.renderTile(0,1)}
+	    {this.renderTile(1,1)}
+	    {this.renderTile(2,1)}
 	    {this.renderTile(3,1)}
+	  </div>
+	  <div className="row">
+	    {this.renderTile(0,2)}
+	    {this.renderTile(1,2)}
+	    {this.renderTile(2,2)}
 	    {this.renderTile(3,2)}
+	  </div>
+	  <div className="row">
+	    {this.renderTile(0,3)}
+	    {this.renderTile(1,3)}
+	    {this.renderTile(2,3)}
 	    {this.renderTile(3,3)}
 	  </div>
 	</div>
@@ -153,7 +123,7 @@ function ClickCounter(params) {
 }
 
 function StatusBar(params) {
-  if (params.hidden == 0) {
+  if (params.win) {
     return (
       <div id="status-bar-win" className="col">
 	WIN
@@ -177,19 +147,19 @@ function StatusBar(params) {
 function Tile(params) {
   var p = params.data;
   var div_id = "tile-" + p.x + "-" + p.y;
-  if (p.complete) {
+  if (p.state == "complete") {
     return (
       <div id={div_id} className="col tile tile-complete">
 	{p.letter}
       </div>
     );
-  } else if (p.active) {
+  } else if (p.state == "active") {
     return (
       <div id={div_id} className="col tile tile-active">
 	{p.letter}
       </div>
     );
-  } else {
+  } else { //p.state == "hidden"
     return (
       <div id={div_id} className="col tile tile-hidden" onClick={params.onClick}>
 	?
@@ -198,42 +168,4 @@ function Tile(params) {
   }
 }
 
-//generate tile permutation
-function makeboard() {
-  var letters = 'abcdefghabcdefgh'.split('');
-  shuffle(letters);
-  
-  var board = [];
-  for (var i=0; i<4; i++) {
-    var row = [];
-    for (var j=0; j<4; j++) {
-      var data = {
-	letter: letters[i*4 + j],
-	complete: false,
-	active: false,
-	x: i,
-	y: j
-      };
-      row.push(data);
-    }
-    board.push(row);
-  }
-
-  return board;
-}
-
-// fisher-yates shuffle
-// https://www.frankmitchell.org/2015/01/fisher-yates/
-function shuffle (array) {
-    var i = 0;
-    var j = 0;
-    var temp = null;
-
-    for (i = array.length - 1; i > 0; i -= 1) {
-	j = Math.floor(Math.random() * (i + 1));
-	temp = array[i];
-	array[i] = array[j];
-	array[j] = temp;
-    }
-}
 
