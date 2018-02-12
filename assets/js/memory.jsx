@@ -44,7 +44,7 @@ class Memory extends React.Component {
   }
   
   gotView(view) {
-    console.log("New view", view);
+    //console.log("New view", view);
     this.setState(view.game);
   }
 

@@ -12,6 +12,7 @@ defmodule MemoryWeb.GamesChannel do
       socket = socket
       |> assign(:game, game)
       |> assign(:name, name)
+      Memory.GameBackup.save(name, game)
       {:ok, %{"join" => name, "game" => Game.client_view(game)}, socket}
     else
       {:error, %{reason: "unauthorized"}}
@@ -19,21 +20,23 @@ defmodule MemoryWeb.GamesChannel do
   end
 
   def handle_in("click", %{"x" => x, "y" => y}, socket) do
-    game = Game.click(socket.assigns[:game], x+y*4)
+    game = Game.click(Memory.GameBackup.load(socket.assigns[:name]), x+y*4)
     Memory.GameBackup.save(socket.assigns[:name], game)
     socket = assign(socket, :game, game)
+    MemoryWeb.Endpoint.broadcast(socket.topic, "update", %{"game" => Game.client_view(game)})
     {:reply, {:ok, %{"game" => Game.client_view(game)}}, socket}
   end
 
   def handle_in("restart", payload, socket) do
-    game = Game.restart(socket.assigns[:game])
+    game = Game.restart(Memory.GameBackup.load(socket.assigns[:name]))
     Memory.GameBackup.save(socket.assigns[:name], game)
     socket = assign(socket, :game, game)
+    MemoryWeb.Endpoint.broadcast(socket.topic, "update", %{"game" => Game.client_view(game)})
     {:reply, {:ok, %{"game" => Game.client_view(game)}}, socket}
   end
   
   def handle_info(:unlock, socket) do
-    game = Game.unlock(socket.assigns[:game])
+    game = Game.unlock(Memory.GameBackup.load(socket.assigns[:name]))
     Memory.GameBackup.save(socket.assigns[:name], game)
     socket = assign(socket, :game, game)
     MemoryWeb.Endpoint.broadcast(socket.topic, "update", %{"game" => Game.client_view(game)})
